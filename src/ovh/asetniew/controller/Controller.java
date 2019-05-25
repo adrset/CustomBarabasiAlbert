@@ -5,9 +5,11 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import ovh.asetniew.ba.BASimulation;
+import ovh.asetniew.ba.BASimulationUsingLists;
 
 public class Controller {
     BASimulation ba;
+    BASimulationUsingLists bal;
     public Controller(){
 
     }
@@ -26,8 +28,9 @@ public class Controller {
     public void onStart(){
 
         try {
-            ba = new BASimulation(5, 1, 50000);
-            ba.start();
+            ba = new BASimulation(5, 1, 1000);
+            bal = new BASimulationUsingLists(5, 1, 100000);
+            bal.start();
             // Obtain Graphics Contexts
             GraphicsContext gc = canvas.getGraphicsContext2D();
             gc.setFill(Color.GREEN);

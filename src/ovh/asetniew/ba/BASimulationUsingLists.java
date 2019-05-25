@@ -1,13 +1,16 @@
 package ovh.asetniew.ba;
+import ovh.asetniew.ba.nodes.Node;
 import ovh.asetniew.misc.Timer;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.PrintStream;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
-public class BASimulation implements BAModification{
+public class BASimulationUsingLists implements BAModification{
 
     private Random generator;
 
@@ -23,12 +26,13 @@ public class BASimulation implements BAModification{
 
     private int dimension;
 
-    private boolean[][] neighbours;
+    private List<Node> nodes;
     private double[] probability;
 
     private Timer timer;
 
-    public BASimulation(int m_0, int m, int maxSteps) throws Exception {
+    public BASimulationUsingLists(int m_0, int m, int maxSteps) throws Exception {
+        this.nodes = new ArrayList<>();
         this.timer = new Timer();
         this.m = m;
         this.m_0 = m_0;
@@ -36,33 +40,34 @@ public class BASimulation implements BAModification{
 
         this.generator = new Random();
 
+        for(int ii =0; ii < m_0; ii++){
+            nodes.add(new Node());
+        }
+
+
+
         if (this.m > this.m_0) {
             throw new Exception("m must not be larger than m!");
         }
         // The maximum number of nodes
         // set it to dimension = maxSteps * m + m_0;
         this.dimension = this.maxSteps * this.m + this.m_0;
-        // Neightbourship matrix
-        this.neighbours = new boolean[this.dimension][];
 
         this.probability = new double[this.dimension];
 
-        for (int ii = 0; ii < this.dimension; ii++) {
-            this.neighbours[ii] = new boolean[this.dimension];
-        }
+
 
         this.connectInitial();
 
     }
 
     private void connectInitial() {
-        for (int ii = 0; ii < this.m_0; ii++) {
-            for (int jj = 0; jj < this.m_0; jj++) {
-                if (ii == jj) {
-                    this.neighbours[ii][jj] = false;
-                } else {
-                    this.neighbours[ii][jj] = true;
+        for(int ii =0; ii < m_0; ii++){
+            for(int jj =0; jj < m_0; jj++){
+                if(ii == jj){
+                    continue;
                 }
+                nodes.get(ii).nodes.add(nodes.get(jj));
             }
         }
     }
@@ -107,25 +112,35 @@ public class BASimulation implements BAModification{
             String str = "Hello";
             BufferedWriter writer = new BufferedWriter(new FileWriter("out.txt"));
 
-        StringBuilder ab = new StringBuilder();
+            StringBuilder ab = new StringBuilder();
 
-        for (int ii = 0; ii < dim; ii++) {
+            for (int ii = 0; ii < nodes.size(); ii++) {
 
-            for (int jj = 0; jj < dim; jj++) {
-                ab.append(neighbours[ii][jj] ? 1 : 0);
+                for (int jj = 0; jj <  nodes.size(); jj++) {
 
-                if(jj != dim - 1){
-                    ab.append(" ");
+                    if (nodes.get(ii).nodes.contains(nodes.get(jj))){
+                        ab.append("1");
+
+                    }else {
+                        ab.append("0");
+                    }
+
+                    if(jj != nodes.size() - 1){
+                        ab.append(" ");
+                    }
+
                 }
+
+                if(ii != nodes.size() - 1){
+                    ab.append("\n");
+                }
+
+
             }
-            if(ii != dim-1)
-                ab.append("\n");
 
-        }
+            writer.write(ab.toString());
 
-        writer.write(ab.toString());
-
-        writer.close();
+            writer.close();
 
         }catch (Exception ex){
             ex.printStackTrace();
@@ -134,18 +149,21 @@ public class BASimulation implements BAModification{
 
     private void addNode(){
         int index = this.m_0 + this.currentStep * this.m;
-
+        Node node = new Node();
+        nodes.add(node);
         // make m new connections for new node
         for(int ii=0 ; ii < this.m; ii++){
-            linkToExistingNode(index);
+            linkToExistingNode(node);
 
         }
+
+
     }
 
-    private void linkToExistingNode(int index){
+    private void linkToExistingNode(Node node){
         double sum = 0.0;
 
-        for(int ii=0 ; ii < index; ii++) {
+        for(int ii=0 ; ii < nodes.size()-1; ii++) {
             probability[ii] = getProbability(ii);
             sum += probability[ii];
         }
@@ -156,7 +174,7 @@ public class BASimulation implements BAModification{
         sum = 0.0;
         int foundIndex = -1;
 
-        for(int ii=0 ; ii < index; ii++){
+        for(int ii=0 ; ii < nodes.size()-1; ii++){
 
             sum += probability[ii];
 
@@ -179,15 +197,15 @@ public class BASimulation implements BAModification{
             ex.printStackTrace();
         }
 
-        linkTwoNodes(index, foundIndex);
+        linkTwoNodes(nodes.size()-1, foundIndex);
 
 
 
     }
 
     public void linkTwoNodes(int i, int j){
-        neighbours[i][j] = true;
-        neighbours[j][i] = true;
+        nodes.get(i).nodes.add(nodes.get(j));
+        nodes.get(j).nodes.add(nodes.get(i));
     }
 
 
@@ -199,9 +217,9 @@ public class BASimulation implements BAModification{
     @Override
     public int getNodeLevel(int number){
         int level = 0;
-
-        for(int jj = 0 ; jj < this.dimension; jj++){
-            level += this.neighbours[number][jj] ? 1  : 0;
+        Node node = nodes.get(number);
+        for(int jj = 0 ; jj < node.nodes.size(); jj++){
+            level += 1;
         }
 
         return level;
