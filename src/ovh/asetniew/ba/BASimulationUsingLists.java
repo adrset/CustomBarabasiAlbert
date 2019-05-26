@@ -1,5 +1,6 @@
 package ovh.asetniew.ba;
 
+import javafx.concurrent.Task;
 import ovh.asetniew.ba.nodes.Node;
 import ovh.asetniew.misc.Timer;
 
@@ -9,7 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-public class BASimulationUsingLists implements BASimulation, Runnable {
+public class BASimulationUsingLists extends Task<Integer> implements BASimulation {
 
     protected Random generator;
 
@@ -99,14 +100,16 @@ public class BASimulationUsingLists implements BASimulation, Runnable {
     }
 
     @Override
-    public void run() {
+    protected Integer call() throws Exception {
         try {
             begin();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        return 1;
     }
+
 
     public void begin() throws Exception {
 

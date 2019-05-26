@@ -1,5 +1,7 @@
 package ovh.asetniew.ba;
 
+import javafx.concurrent.Task;
+
 /**
  * Start should be moved outside
  */
