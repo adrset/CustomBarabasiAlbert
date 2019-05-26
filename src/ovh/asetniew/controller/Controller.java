@@ -16,6 +16,7 @@ public class Controller {
     BASimulationUsingLists bal;
     BASimulationNonLinearUsingLists ba2;
     Thread t1;
+    ScatterChart<Number, Number> scatterPlot;
     @FXML
     private Pane paneView;
 
@@ -33,18 +34,13 @@ public class Controller {
 
     private void loadData(){
         paneView.getChildren().clear();
-        NumberAxis verticalAxis = new NumberAxis(0,5,1);
+        NumberAxis verticalAxis = new NumberAxis();
         verticalAxis.setLabel("X");
-        NumberAxis horizontalAxis = new NumberAxis(0,5,1);
+        NumberAxis horizontalAxis = new NumberAxis();
         horizontalAxis.setLabel("Y");
-        ScatterChart<Number, Number> scatterPlot = new ScatterChart<Number, Number>(verticalAxis, horizontalAxis);
+        scatterPlot = new ScatterChart<Number, Number>(verticalAxis, horizontalAxis);
         scatterPlot.setTitle("The title");
-        XYChart.Series series = new XYChart.Series();
-        series.setName("Title");
-        series.getData().add(new XYChart.Data<>(0,0));
-        series.getData().add(new XYChart.Data<>(1,1));
-        series.getData().add(new XYChart.Data<>(2,2));
-        scatterPlot.getData().add(series);
+
         scatterPlot.setMaxWidth(500);
         scatterPlot.setMaxHeight(500);
         paneView.getChildren().add(scatterPlot);
@@ -58,10 +54,11 @@ public class Controller {
     public void onStart() {
 
         try {
-            ba = new BASimulationUsingMatrix(5, 1, 1000);
-            bal = new BASimulationUsingLists(5, 1, 1000);
-            ba2 = new BASimulationNonLinearUsingLists(5, 1, 1000, 0.75);
+           // ba = new BASimulationUsingMatrix(5, 1, 1000);
+           // bal = new BASimulationUsingLists(5, 1, 1000, scatterPlot);
+            ba2 = new BASimulationNonLinearUsingLists(5, 1, 1000, 0.75, scatterPlot);
             t1 = new Thread(ba2);
+            t1.setDaemon(true);
             t1.start();
 
 

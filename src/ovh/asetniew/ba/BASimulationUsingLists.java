@@ -1,6 +1,9 @@
 package ovh.asetniew.ba;
 
+import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.scene.chart.ScatterChart;
+import javafx.scene.chart.XYChart;
 import ovh.asetniew.ba.nodes.Node;
 import ovh.asetniew.misc.Timer;
 
@@ -26,12 +29,18 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
 
     protected int dimension;
 
+    protected Map<Integer, Integer> distribution;
     protected List<Node> nodes;
     protected double[] probability;
 
     protected Timer timer;
+    protected ScatterChart<Number, Number> scatterPlot;
+    private XYChart.Series<Number, Number> series = new XYChart.Series<>();
 
-    public BASimulationUsingLists(int m_0, int m, int maxSteps) throws Exception {
+    public BASimulationUsingLists(int m_0, int m, int maxSteps, ScatterChart<Number, Number> scatterPlot) throws Exception {
+
+
+        this.scatterPlot = scatterPlot;
         this.nodes = new ArrayList<>();
         this.timer = new Timer();
         this.m = m;
@@ -70,16 +79,16 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
         }
     }
 
-    public void getDegreeDistribution() {
+    public Map<Integer, Integer> getDegreeDistribution() {
         Map<Integer, Integer> map = new HashMap<>();
 
 
         for (int ii = 0; ii < nodes.size(); ii++) {
             int size = nodes.get(ii).nodes.size();
-            if(map.get(size) == null){
+            if (map.get(size) == null) {
                 map.put(size, 1);
-            }else{
-                map.put(size, map.get(size)+1);
+            } else {
+                map.put(size, map.get(size) + 1);
             }
 
 
@@ -97,6 +106,8 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+
+        return map;
     }
 
     @Override
@@ -106,6 +117,23 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        Platform.runLater(() -> {
+            XYChart.Series series2 = new XYChart.Series();
+            series2.setName("Tytul2");
+
+
+            int i = 1;
+            for (int key : distribution.keySet()) {
+                series2.getData().add(new XYChart.Data<>(key,distribution.get(key)));
+            }
+            // Add a new number to the linechart
+
+            series2.getData().remove(0);
+            scatterPlot.getData().add(series2);
+
+        });
+
 
         return 1;
     }
@@ -137,7 +165,8 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
         }
         System.out.println("Total time: " + timer.getTotalTime());
         printNeightbourMatrix();
-        getDegreeDistribution();
+        distribution = getDegreeDistribution();
+
 
     }
 

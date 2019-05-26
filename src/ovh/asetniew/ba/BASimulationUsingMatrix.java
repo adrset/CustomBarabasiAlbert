@@ -4,6 +4,7 @@ import ovh.asetniew.misc.Timer;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 
+import java.util.Map;
 import java.util.Random;
 
 public class BASimulationUsingMatrix implements BASimulation, Runnable {
@@ -54,9 +55,9 @@ public class BASimulationUsingMatrix implements BASimulation, Runnable {
 
     }
 
-    public void getDegreeDistribution(){
+    public Map<Integer, Integer> getDegreeDistribution(){
 
-
+        return null;
     }
 
     private void connectInitial() {

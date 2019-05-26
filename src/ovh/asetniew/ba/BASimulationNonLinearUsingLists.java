@@ -1,9 +1,11 @@
 package ovh.asetniew.ba;
 
+import javafx.scene.chart.ScatterChart;
+
 public class BASimulationNonLinearUsingLists extends BASimulationUsingLists {
     private double gamma;
-    public BASimulationNonLinearUsingLists(int m_0, int m, int maxSteps, double gamma) throws Exception {
-        super(m_0, m, maxSteps);
+    public BASimulationNonLinearUsingLists(int m_0, int m, int maxSteps, double gamma, ScatterChart<Number, Number> scatterPlot) throws Exception {
+        super(m_0, m, maxSteps, scatterPlot);
         this.gamma = gamma;
     }
 
