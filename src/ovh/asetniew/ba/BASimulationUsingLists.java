@@ -1,35 +1,34 @@
 package ovh.asetniew.ba;
+
 import ovh.asetniew.ba.nodes.Node;
 import ovh.asetniew.misc.Timer;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.io.PrintStream;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.io.IOException;
+import java.util.*;
 
-public class BASimulationUsingLists implements BAModification{
+public class BASimulationUsingLists implements BASimulation, Runnable {
 
-    private Random generator;
+    protected Random generator;
 
-    private final int MAX_FPS = 30000;
+    protected final int MAX_FPS = 30000;
 
-    private int currentStep;
+    protected int currentStep;
 
-    private int maxSteps;
+    protected int maxSteps;
 
-    private int m_0;
+    protected int m_0;
 
-    private int m;
+    protected int m;
 
-    private int dimension;
+    protected int dimension;
 
-    private List<Node> nodes;
-    private double[] probability;
+    protected List<Node> nodes;
+    protected double[] probability;
 
-    private Timer timer;
+    protected Timer timer;
 
     public BASimulationUsingLists(int m_0, int m, int maxSteps) throws Exception {
         this.nodes = new ArrayList<>();
@@ -40,10 +39,9 @@ public class BASimulationUsingLists implements BAModification{
 
         this.generator = new Random();
 
-        for(int ii =0; ii < m_0; ii++){
+        for (int ii = 0; ii < m_0; ii++) {
             nodes.add(new Node());
         }
-
 
 
         if (this.m > this.m_0) {
@@ -56,15 +54,14 @@ public class BASimulationUsingLists implements BAModification{
         this.probability = new double[this.dimension];
 
 
-
         this.connectInitial();
 
     }
 
     private void connectInitial() {
-        for(int ii =0; ii < m_0; ii++){
-            for(int jj =0; jj < m_0; jj++){
-                if(ii == jj){
+        for (int ii = 0; ii < m_0; ii++) {
+            for (int jj = 0; jj < m_0; jj++) {
+                if (ii == jj) {
                     continue;
                 }
                 nodes.get(ii).nodes.add(nodes.get(jj));
@@ -72,42 +69,81 @@ public class BASimulationUsingLists implements BAModification{
         }
     }
 
-    public void start() throws Exception{
+    public void getDegreeDistribution() {
+        Map<Integer, Integer> map = new HashMap<>();
+
+
+        for (int ii = 0; ii < nodes.size(); ii++) {
+            int size = nodes.get(ii).nodes.size();
+            if(map.get(size) == null){
+                map.put(size, 1);
+            }else{
+                map.put(size, map.get(size)+1);
+            }
+
+
+        }
+
+
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter("p(k).txt"));
+
+            for (int key : map.keySet()) {
+                writer.write(key + "\t" + map.get(key) + "\n");
+            }
+
+            writer.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Override
+    public void run() {
+        try {
+            begin();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void begin() throws Exception {
 
         double timeToWait;
         double time;
         for (int ii = this.currentStep; ii < this.maxSteps; ii++) {
             timer.start();
             update();
-            float val = ( (float) currentStep / (float)maxSteps) * 100f;
-            System.out.println(String.format("\r%d%%",(int)val));
+            float val = ((float) currentStep / (float) maxSteps) * 100f;
+            System.out.println(String.format("\r%d%%", (int) val));
 
             time = timer.end();
 
-            if(time > 1f  / MAX_FPS){
+            if (time > 1f / MAX_FPS) {
                 continue;
             }
 
-            timeToWait = Math.abs(1f/ MAX_FPS - time) * 1000f;
+            timeToWait = Math.abs(1f / MAX_FPS - time) * 1000f;
 
 
-            while(timeToWait > 0) {
+            while (timeToWait > 0) {
                 Thread.sleep(1);
                 timeToWait -= 1f;
             }
         }
-
+        System.out.println("Total time: " + timer.getTotalTime());
         printNeightbourMatrix();
+        getDegreeDistribution();
 
     }
 
 
-
-    public void printNeightbourMatrix(){
+    public void printNeightbourMatrix() {
         printNeightbourMatrix(this.m_0 + this.currentStep * this.m);
     }
 
-    public void printNeightbourMatrix(int dim){
+    public void printNeightbourMatrix(int dim) {
         try {
             String str = "Hello";
             BufferedWriter writer = new BufferedWriter(new FileWriter("out.txt"));
@@ -116,22 +152,22 @@ public class BASimulationUsingLists implements BAModification{
 
             for (int ii = 0; ii < nodes.size(); ii++) {
 
-                for (int jj = 0; jj <  nodes.size(); jj++) {
+                for (int jj = 0; jj < nodes.size(); jj++) {
 
-                    if (nodes.get(ii).nodes.contains(nodes.get(jj))){
+                    if (nodes.get(ii).nodes.contains(nodes.get(jj))) {
                         ab.append("1");
 
-                    }else {
+                    } else {
                         ab.append("0");
                     }
 
-                    if(jj != nodes.size() - 1){
+                    if (jj != nodes.size() - 1) {
                         ab.append(" ");
                     }
 
                 }
 
-                if(ii != nodes.size() - 1){
+                if (ii != nodes.size() - 1) {
                     ab.append("\n");
                 }
 
@@ -142,17 +178,62 @@ public class BASimulationUsingLists implements BAModification{
 
             writer.close();
 
-        }catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
-    private void addNode(){
+    public void printAdjacencyList() {
+        try {
+            String str = "Hello";
+            BufferedWriter writer = new BufferedWriter(new FileWriter("out.txt"));
+
+            StringBuilder ab = new StringBuilder();
+            ab.append("{");
+            for (int ii = 0; ii < nodes.size(); ii++) {
+                ab.append("{");
+
+                Set<Node> childNodes = nodes.get(ii).nodes;
+
+                Iterator<Node> iter = childNodes.iterator();
+
+                while (iter.hasNext()) {
+                    Node child = iter.next();
+                    int index = nodes.indexOf(child);
+                    if (index != -1) {
+                        if (iter.hasNext()) {
+                            ab.append(index + ", ");
+                        } else {
+                            ab.append(index);
+                        }
+                    }
+                }
+
+
+                if (ii < nodes.size() - 1) {
+                    ab.append("},");
+                } else {
+                    ab.append("}");
+                }
+
+
+            }
+            ab.append("}");
+            writer.write(ab.toString());
+
+            writer.close();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void addNode() {
         int index = this.m_0 + this.currentStep * this.m;
         Node node = new Node();
         nodes.add(node);
         // make m new connections for new node
-        for(int ii=0 ; ii < this.m; ii++){
+        for (int ii = 0; ii < this.m; ii++) {
             linkToExistingNode(node);
 
         }
@@ -160,10 +241,10 @@ public class BASimulationUsingLists implements BAModification{
 
     }
 
-    private void linkToExistingNode(Node node){
+    private void linkToExistingNode(Node node) {
         double sum = 0.0;
 
-        for(int ii=0 ; ii < nodes.size()-1; ii++) {
+        for (int ii = 0; ii < nodes.size() - 1; ii++) {
             probability[ii] = getProbability(ii);
             sum += probability[ii];
         }
@@ -174,13 +255,12 @@ public class BASimulationUsingLists implements BAModification{
         sum = 0.0;
         int foundIndex = -1;
 
-        for(int ii=0 ; ii < nodes.size()-1; ii++){
+        for (int ii = 0; ii < nodes.size() - 1; ii++) {
 
             sum += probability[ii];
 
 
-
-            if (sum > randomNumber){
+            if (sum > randomNumber) {
 
 
                 foundIndex = ii;
@@ -193,32 +273,30 @@ public class BASimulationUsingLists implements BAModification{
             if (foundIndex == -1) {
                 throw new Exception("WTH");
             }
-        }catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        linkTwoNodes(nodes.size()-1, foundIndex);
-
+        linkTwoNodes(nodes.size() - 1, foundIndex);
 
 
     }
 
-    public void linkTwoNodes(int i, int j){
+    public void linkTwoNodes(int i, int j) {
         nodes.get(i).nodes.add(nodes.get(j));
         nodes.get(j).nodes.add(nodes.get(i));
     }
 
 
     /**
-     *
      * @param number index of the node
      * @return number of node connections
      */
     @Override
-    public int getNodeLevel(int number){
+    public int getNodeLevel(int number) {
         int level = 0;
         Node node = nodes.get(number);
-        for(int jj = 0 ; jj < node.nodes.size(); jj++){
+        for (int jj = 0; jj < node.nodes.size(); jj++) {
             level += 1;
         }
 
@@ -226,14 +304,13 @@ public class BASimulationUsingLists implements BAModification{
     }
 
 
-    public void update(){
+    public void update() {
         addNode();
         this.currentStep += 1;
 
     }
 
     /**
-     *
      * @param nodeNumber a number of node
      * @return the probability of linking to specified node
      */
@@ -241,7 +318,7 @@ public class BASimulationUsingLists implements BAModification{
     public float getProbability(int nodeNumber) {
         float level = (float) getNodeLevel(nodeNumber);
 
-        return level / (2.0f * this.m * (this.currentStep+1));
+        return level / (2.0f * this.m * (this.currentStep + 1));
     }
 
 

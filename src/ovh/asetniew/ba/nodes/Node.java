@@ -1,14 +1,16 @@
 package ovh.asetniew.ba.nodes;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Node {
 
-    public List<Node> nodes;
+    public Set<Node> nodes;
 
     public Node(){
-        nodes = new ArrayList<>();
+        nodes = new HashSet<>();
     }
 
 
