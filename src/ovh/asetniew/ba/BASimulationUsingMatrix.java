@@ -1,4 +1,5 @@
 package ovh.asetniew.ba;
+import javafx.concurrent.Task;
 import ovh.asetniew.misc.Timer;
 
 import java.io.BufferedWriter;
@@ -7,7 +8,7 @@ import java.io.FileWriter;
 import java.util.Map;
 import java.util.Random;
 
-public class BASimulationUsingMatrix implements BASimulation, Runnable {
+public class BASimulationUsingMatrix extends Task<Integer> implements BASimulation {
 
     private Random generator;
 
@@ -73,12 +74,14 @@ public class BASimulationUsingMatrix implements BASimulation, Runnable {
     }
 
     @Override
-    public void run() {
+    public Integer call() {
         try {
             begin();
         }catch(Exception e){
             e.printStackTrace();
         }
+
+        return 1;
 
     }
 
@@ -91,6 +94,7 @@ public class BASimulationUsingMatrix implements BASimulation, Runnable {
             update();
             float val = ( (float) currentStep / (float)maxSteps) * 100f;
             System.out.println(String.format("\r%d%%",(int)val));
+            updateProgress(currentStep, maxSteps);
 
             time = timer.end();
 

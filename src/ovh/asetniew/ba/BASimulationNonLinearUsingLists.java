@@ -4,8 +4,8 @@ import javafx.scene.chart.ScatterChart;
 
 public class BASimulationNonLinearUsingLists extends BASimulationUsingLists {
     private double gamma;
-    public BASimulationNonLinearUsingLists(int m_0, int m, int maxSteps, double gamma, ScatterChart<Number, Number> scatterPlot) throws Exception {
-        super(m_0, m, maxSteps, scatterPlot);
+    public BASimulationNonLinearUsingLists(int m_0, int m, int maxSteps, double gamma, ScatterChart<Number, Number> scatterPlot,ScatterChart<Number, Number> scatterPlot2) throws Exception {
+        super(m_0, m, maxSteps, scatterPlot,scatterPlot2);
         this.gamma = gamma;
     }
 

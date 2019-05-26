@@ -2,7 +2,9 @@ package ovh.asetniew.ba;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
+import javafx.scene.chart.ValueAxis;
 import javafx.scene.chart.XYChart;
 import ovh.asetniew.ba.nodes.Node;
 import ovh.asetniew.misc.Timer;
@@ -35,12 +37,15 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
 
     protected Timer timer;
     protected ScatterChart<Number, Number> scatterPlot;
+    protected ScatterChart<Number, Number> scatterPlot2;
     private XYChart.Series<Number, Number> series = new XYChart.Series<>();
+    private XYChart.Series<Number, Number> series2 = new XYChart.Series<>();
 
-    public BASimulationUsingLists(int m_0, int m, int maxSteps, ScatterChart<Number, Number> scatterPlot) throws Exception {
+    public BASimulationUsingLists(int m_0, int m, int maxSteps, ScatterChart<Number, Number> scatterPlot,ScatterChart<Number, Number> scatterPlot2) throws Exception {
 
 
         this.scatterPlot = scatterPlot;
+        this.scatterPlot2 = scatterPlot2;
         this.nodes = new ArrayList<>();
         this.timer = new Timer();
         this.m = m;
@@ -124,13 +129,30 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
 
 
             int i = 1;
+            double maxX = -1;
+            double minX = 10000000;
+            double maxY = -1;
+            double minY = 10000000;
             for (int key : distribution.keySet()) {
                 series2.getData().add(new XYChart.Data<>(key,distribution.get(key)));
+                series.getData().add(new XYChart.Data<>(key,distribution.get(key)));
+                maxX = Double.max(key, maxX);
+                minX = Double.min(key, minX);
+                maxY = Double.max(distribution.get(key), maxY);
+                minY = Double.min(distribution.get(key), minY);
             }
             // Add a new number to the linechart
-
-            series2.getData().remove(0);
             scatterPlot.getData().add(series2);
+            System.out.println(scatterPlot2 == null);
+
+            scatterPlot2.getData().add(series);
+
+            ValueAxis axisX = (ValueAxis) scatterPlot.getXAxis();
+            ValueAxis axisY = (ValueAxis) scatterPlot.getYAxis();
+
+            axisX.setUpperBound(Math.pow(10,getPower(maxX)-1));
+            //axisY.setLowerBound(0.0001);
+            axisY.setUpperBound(Math.pow(10,getPower(maxY)-1));
 
         });
 
@@ -138,6 +160,29 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
         return 1;
     }
 
+    public static int getPower(double x){
+        double ret = x;
+        int power = 1;
+        while(ret > 1 ){
+            ret /= 10;
+            power++;
+        }
+
+        return power;
+    }
+
+    @Override
+    protected void succeeded() {
+        super.succeeded();
+        System.out.println("Success!");
+        updateProgress(maxSteps, maxSteps);
+    }
+
+    @Override
+    protected void failed() {
+        super.failed();
+        System.out.println("Failed!");
+    }
 
     public void begin() throws Exception {
 
@@ -146,9 +191,8 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
         for (int ii = this.currentStep; ii < this.maxSteps; ii++) {
             timer.start();
             update();
-            float val = ((float) currentStep / (float) maxSteps) * 100f;
-            System.out.println(String.format("\r%d%%", (int) val));
 
+            updateProgress(currentStep, maxSteps);
             time = timer.end();
 
             if (time > 1f / MAX_FPS) {
