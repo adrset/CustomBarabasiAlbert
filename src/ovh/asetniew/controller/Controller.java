@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.chart.NumberAxis;
@@ -40,6 +41,10 @@ public class Controller {
     private int m0 = 5;
 
     @FXML
+    Button start;
+    @FXML
+    Button clear;
+    @FXML
     TextField textGamma;
 
     @FXML
@@ -47,7 +52,10 @@ public class Controller {
     @FXML
     TextField textM;
     @FXML
+    TextField steps;
+    @FXML
     TextField textM0;
+    private int maxSteps;
     Thread t1;
     ScatterChart<Number, Number> scatterPlot;
     ScatterChart<Number, Number> scatterPlot2;
@@ -108,6 +116,8 @@ public class Controller {
 
         textM.setTextFormatter(
                 new TextFormatter<Integer>(new IntegerStringConverter(), 0, integerFilter));
+        steps.setTextFormatter(
+                new TextFormatter<Integer>(new IntegerStringConverter(), 0, integerFilter));
         textM0.setTextFormatter(
                 new TextFormatter<Integer>(new IntegerStringConverter(), 0, integerFilter));
 
@@ -116,10 +126,19 @@ public class Controller {
         textGamma.setTextFormatter(textFormatter);
 
 
-        mode.getItems().add("BAListLinear");
+        mode.getItems().add("BAListNonLinear");
         mode.getItems().add("BAList");
         mode.getItems().add("BAMatrix");
         mode.setValue(mode.getItems().get(0));
+
+        steps.setText("1000");
+        maxSteps = 1000;
+        textM0.setText("4");
+        m0 = 4;
+        textM.setText("1");
+        m = 1;
+        textGamma.setText("1");
+        gamma = 1;
 
     }
 
@@ -136,25 +155,25 @@ public class Controller {
     private void loadData() {
         paneView.getChildren().clear();
         ValueAxis verticalAxis = new LogarithmicNumberAxis();
-        verticalAxis.setLabel("X");
+        verticalAxis.setLabel("P(k)");
         ValueAxis horizontalAxis = new LogarithmicNumberAxis();
 
-        horizontalAxis.setLabel("Y");
+        horizontalAxis.setLabel("k");
         scatterPlot = new ScatterChart<Number, Number>(verticalAxis, horizontalAxis);
-        scatterPlot.setTitle("The title");
+        scatterPlot.setTitle("Rozkład P(k) w skali log-log");
 
 
         paneView.getChildren().add(scatterPlot);
 
         ValueAxis verticalAxis2 = new NumberAxis();
-        verticalAxis.setLabel("X");
+        verticalAxis2.setLabel("P(k)");
         ValueAxis horizontalAxis2 = new LogarithmicNumberAxis();
 
-        horizontalAxis2.setLabel("Y");
+        horizontalAxis2.setLabel("k");
 
         scatterPlot2 = new ScatterChart<Number, Number>(verticalAxis2, horizontalAxis2);
 
-        scatterPlot2.setTitle("The title");
+        scatterPlot2.setTitle("Rozkład P(k) w skali none-log");
 
 
         paneView2.getChildren().add(scatterPlot2);
@@ -168,6 +187,10 @@ public class Controller {
         this.m0 = Integer.valueOf(textM0.getText().toString());
 
     }
+    public void adjustSteps() {
+        this.maxSteps = Integer.valueOf(steps.getText().toString());
+
+    }
     public void adjustGamma() {
         this.gamma = Double.valueOf(textGamma.getText().toString());
 
@@ -177,8 +200,16 @@ public class Controller {
     public void onExit() {
         Platform.exit();
     }
-
+    public void onClear() {
+        scatterPlot.getData().clear();
+        scatterPlot2.getData().clear();
+    }
     public void onStart() {
+        double progress = progressBar.progressProperty().get();
+
+        if((ba != null && ba.stateProperty().getValue() == Worker.State.RUNNING || (baMatrix != null && baMatrix.stateProperty().getValue() == Worker.State.RUNNING))){
+            return;
+        }
 
         try {
             // ba = new BASimulationUsingMatrix(5, 1, 1000);
@@ -186,16 +217,46 @@ public class Controller {
             System.out.println("M->" + m + " M_0->" + m0 + " gamma->" + gamma);
 
             if(theMode == 0 ){
-                ba = new BASimulationNonLinearUsingLists(m0, m, 1000, gamma, scatterPlot,scatterPlot2);
+                ba = new BASimulationNonLinearUsingLists(m0, m, maxSteps, gamma, scatterPlot,scatterPlot2);
                 t1 = new Thread(ba);
                 progressBar.progressProperty().bind(ba.progressProperty());
+                ba.stateProperty().addListener((argv,oldVal,newVal) -> {
+
+                    if(newVal == Worker.State.RUNNING){
+                        Platform.runLater(() -> {
+                            start.setDisable(true);
+                        });
+                    }else if( newVal == Worker.State.FAILED || newVal == Worker.State.SUCCEEDED){
+                        start.setDisable(false);
+                    }
+                });
             }else if(theMode == 1){
-                ba = new BASimulationUsingLists(m0, m, 1000, scatterPlot,scatterPlot2);
+                ba = new BASimulationUsingLists(m0, m, maxSteps, scatterPlot,scatterPlot2);
                 t1 = new Thread(ba);
                 progressBar.progressProperty().bind(ba.progressProperty());
+                ba.stateProperty().addListener((argv,oldVal,newVal) -> {
+
+                    if(newVal == Worker.State.RUNNING){
+                        Platform.runLater(() -> {
+                            start.setDisable(true);
+                        });
+                    }else if( newVal == Worker.State.FAILED || newVal == Worker.State.SUCCEEDED){
+                        start.setDisable(false);
+                    }
+                });
             }else{
-                baMatrix = new BASimulationUsingMatrix(m0, m, 1000);
+                baMatrix = new BASimulationUsingMatrix(m0, m, maxSteps);
                 t1 = new Thread(baMatrix);
+                baMatrix.stateProperty().addListener((argv,oldVal,newVal) -> {
+
+                    if(newVal == Worker.State.RUNNING){
+                        Platform.runLater(() -> {
+                            start.setDisable(true);
+                        });
+                    }else if( newVal == Worker.State.FAILED || newVal == Worker.State.SUCCEEDED){
+                        start.setDisable(false);
+                    }
+                });
 
                 progressBar.progressProperty().bind(baMatrix.progressProperty());
             }

@@ -38,8 +38,8 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
     protected Timer timer;
     protected ScatterChart<Number, Number> scatterPlot;
     protected ScatterChart<Number, Number> scatterPlot2;
-    private XYChart.Series<Number, Number> series = new XYChart.Series<>();
-    private XYChart.Series<Number, Number> series2 = new XYChart.Series<>();
+    protected XYChart.Series<Number, Number> series = new XYChart.Series<>();
+    protected XYChart.Series<Number, Number> series2 = new XYChart.Series<>();
 
     public BASimulationUsingLists(int m_0, int m, int maxSteps, ScatterChart<Number, Number> scatterPlot,ScatterChart<Number, Number> scatterPlot2) throws Exception {
 
@@ -125,7 +125,8 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
 
         Platform.runLater(() -> {
             XYChart.Series series2 = new XYChart.Series();
-            series2.setName("Tytul2");
+            series2.setName("Linear N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
+            series.setName("Linear N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
 
 
             int i = 1;
@@ -149,6 +150,12 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
 
             ValueAxis axisX = (ValueAxis) scatterPlot.getXAxis();
             ValueAxis axisY = (ValueAxis) scatterPlot.getYAxis();
+
+            axisX.setUpperBound(Math.pow(10,getPower(maxX)-1));
+            //axisY.setLowerBound(0.0001);
+            axisY.setUpperBound(Math.pow(10,getPower(maxY)-1));
+            axisX = (ValueAxis) scatterPlot2.getXAxis();
+            axisY = (ValueAxis) scatterPlot2.getYAxis();
 
             axisX.setUpperBound(Math.pow(10,getPower(maxX)-1));
             //axisY.setLowerBound(0.0001);

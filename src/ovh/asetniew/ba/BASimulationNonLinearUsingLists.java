@@ -1,6 +1,9 @@
 package ovh.asetniew.ba;
 
+import javafx.application.Platform;
 import javafx.scene.chart.ScatterChart;
+import javafx.scene.chart.ValueAxis;
+import javafx.scene.chart.XYChart;
 
 public class BASimulationNonLinearUsingLists extends BASimulationUsingLists {
     private double gamma;
@@ -9,7 +12,19 @@ public class BASimulationNonLinearUsingLists extends BASimulationUsingLists {
         this.gamma = gamma;
     }
 
+    @Override
+    protected Integer call() throws Exception {
+       Integer i = super.call();
+        Platform.runLater(()->{
+            scatterPlot.getData().get(scatterPlot.getData().size() - 1).setName("NonLinear N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
+            scatterPlot2.getData().get(scatterPlot2.getData().size() - 1).setName("NonLinear N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
+        });
 
+
+
+
+       return i;
+    }
 
     @Override
     public float getProbability(int nodeNumber) {
