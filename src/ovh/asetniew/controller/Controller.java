@@ -18,10 +18,7 @@ import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import javafx.util.converter.DoubleStringConverter;
 import javafx.util.converter.IntegerStringConverter;
-import ovh.asetniew.ba.BASimulation;
-import ovh.asetniew.ba.BASimulationNonLinearUsingLists;
-import ovh.asetniew.ba.BASimulationUsingMatrix;
-import ovh.asetniew.ba.BASimulationUsingLists;
+import ovh.asetniew.ba.*;
 import ovh.asetniew.ba.nodes.LogarithmicNumberAxis;
 
 import javax.xml.soap.Text;
@@ -127,6 +124,7 @@ public class Controller {
 
 
         mode.getItems().add("BAListNonLinear");
+        mode.getItems().add("BAListAdaptive");
         mode.getItems().add("BAList");
         mode.getItems().add("BAMatrix");
         mode.setValue(mode.getItems().get(0));
@@ -155,10 +153,10 @@ public class Controller {
     private void loadData() {
         paneView.getChildren().clear();
         ValueAxis verticalAxis = new LogarithmicNumberAxis();
-        verticalAxis.setLabel("P(k)");
+        verticalAxis.setLabel("k");
         ValueAxis horizontalAxis = new LogarithmicNumberAxis();
 
-        horizontalAxis.setLabel("k");
+        horizontalAxis.setLabel("P(k)");
         scatterPlot = new ScatterChart<Number, Number>(verticalAxis, horizontalAxis);
         scatterPlot.setTitle("Rozkład P(k) w skali log-log");
 
@@ -166,10 +164,10 @@ public class Controller {
         paneView.getChildren().add(scatterPlot);
 
         ValueAxis verticalAxis2 = new NumberAxis();
-        verticalAxis2.setLabel("P(k)");
+        verticalAxis2.setLabel("k");
         ValueAxis horizontalAxis2 = new LogarithmicNumberAxis();
 
-        horizontalAxis2.setLabel("k");
+        horizontalAxis2.setLabel("P(k)");
 
         scatterPlot2 = new ScatterChart<Number, Number>(verticalAxis2, horizontalAxis2);
 
@@ -231,6 +229,21 @@ public class Controller {
                     }
                 });
             }else if(theMode == 1){
+                System.out.println("here");
+                ba = new BASimulationPreferentialVarietyUsingLists(m0, m, maxSteps, scatterPlot,scatterPlot2);
+                t1 = new Thread(ba);
+                progressBar.progressProperty().bind(ba.progressProperty());
+                ba.stateProperty().addListener((argv,oldVal,newVal) -> {
+
+                    if(newVal == Worker.State.RUNNING){
+                        Platform.runLater(() -> {
+                            start.setDisable(true);
+                        });
+                    }else if( newVal == Worker.State.FAILED || newVal == Worker.State.SUCCEEDED){
+                        start.setDisable(false);
+                    }
+                });
+            }else if(theMode == 2){
                 ba = new BASimulationUsingLists(m0, m, maxSteps, scatterPlot,scatterPlot2);
                 t1 = new Thread(ba);
                 progressBar.progressProperty().bind(ba.progressProperty());

@@ -125,8 +125,8 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
 
         Platform.runLater(() -> {
             XYChart.Series series2 = new XYChart.Series();
-            series2.setName("Linear N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
-            series.setName("Linear N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
+            series2.setName("BA N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
+            series.setName("BA N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
 
 
             int i = 1;
@@ -311,7 +311,7 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
         }
     }
 
-    private void addNode() {
+    protected void addNode() {
         int index = this.m_0 + this.currentStep * this.m;
         Node node = new Node();
         nodes.add(node);

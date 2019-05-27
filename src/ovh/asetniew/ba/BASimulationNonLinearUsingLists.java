@@ -16,8 +16,8 @@ public class BASimulationNonLinearUsingLists extends BASimulationUsingLists {
     protected Integer call() throws Exception {
        Integer i = super.call();
         Platform.runLater(()->{
-            scatterPlot.getData().get(scatterPlot.getData().size() - 1).setName("NonLinear N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
-            scatterPlot2.getData().get(scatterPlot2.getData().size() - 1).setName("NonLinear N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
+            scatterPlot.getData().get(scatterPlot.getData().size() - 1).setName("BB N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
+            scatterPlot2.getData().get(scatterPlot2.getData().size() - 1).setName("BB N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
         });
 
 
