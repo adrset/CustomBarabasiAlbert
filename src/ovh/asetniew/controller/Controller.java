@@ -8,10 +8,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.ScatterChart;
-import javafx.scene.chart.ValueAxis;
-import javafx.scene.chart.XYChart;
+import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.control.TextFormatter.Change;
 import javafx.scene.layout.Pane;
@@ -127,7 +124,7 @@ public class Controller {
         mode.getItems().add("BAListAdaptive");
         mode.getItems().add("BAList");
         mode.getItems().add("BAMatrix");
-        mode.setValue(mode.getItems().get(0));
+        mode.setValue(mode.getItems().get(2));
 
         steps.setText("1000");
         maxSteps = 1000;
@@ -157,8 +154,9 @@ public class Controller {
         ValueAxis horizontalAxis = new LogarithmicNumberAxis();
 
         horizontalAxis.setLabel("P(k)");
-        scatterPlot = new ScatterChart<Number, Number>(verticalAxis, horizontalAxis);
+        scatterPlot = new ScatterChart(verticalAxis, horizontalAxis);
         scatterPlot.setTitle("Rozkład P(k) w skali log-log");
+        scatterPlot.autosize();
 
 
         paneView.getChildren().add(scatterPlot);
@@ -169,11 +167,13 @@ public class Controller {
 
         horizontalAxis2.setLabel("P(k)");
 
-        scatterPlot2 = new ScatterChart<Number, Number>(verticalAxis2, horizontalAxis2);
+        scatterPlot2 = new ScatterChart(verticalAxis2, horizontalAxis2);
 
         scatterPlot2.setTitle("Rozkład P(k) w skali none-log");
 
-
+        scatterPlot.setAnimated(false);
+        scatterPlot2.setAnimated(false);
+        scatterPlot2.autosize();
         paneView2.getChildren().add(scatterPlot2);
     }
 
@@ -199,6 +199,7 @@ public class Controller {
         Platform.exit();
     }
     public void onClear() {
+
         scatterPlot.getData().clear();
         scatterPlot2.getData().clear();
     }

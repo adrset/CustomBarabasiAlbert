@@ -1,15 +1,16 @@
 package ovh.asetniew.ba;
 
 
-        import javafx.application.Platform;
-        import javafx.scene.chart.ScatterChart;
-        import javafx.scene.chart.ValueAxis;
-        import javafx.scene.chart.XYChart;
-        import ovh.asetniew.ba.BASimulationUsingLists;
+import javafx.application.Platform;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.ScatterChart;
+import javafx.scene.chart.ValueAxis;
+import javafx.scene.chart.XYChart;
+import ovh.asetniew.ba.BASimulationUsingLists;
 
-        import java.util.ArrayList;
-        import java.util.List;
-        import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class BASimulationPreferentialVarietyUsingLists extends BASimulationUsingLists {
     private List<Float> adaptiveCoefficients;
@@ -26,8 +27,8 @@ public class BASimulationPreferentialVarietyUsingLists extends BASimulationUsing
     protected Integer call() throws Exception {
         Integer i = super.call();
         Platform.runLater(()->{
-            scatterPlot.getData().get(scatterPlot.getData().size() - 1).setName("Adaptive N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
-            scatterPlot2.getData().get(scatterPlot2.getData().size() - 1).setName("Adaptive N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
+            loglogPlot.getData().get(loglogPlot.getData().size() - 1).setName("Adaptive N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
+            semilogPlot.getData().get(semilogPlot.getData().size() - 1).setName("Adaptive N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
         });
 
 

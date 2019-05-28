@@ -2,10 +2,9 @@ package ovh.asetniew.ba;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.ScatterChart;
-import javafx.scene.chart.ValueAxis;
-import javafx.scene.chart.XYChart;
+import javafx.scene.chart.*;
+import org.apache.commons.math3.fitting.WeightedObservedPoint;
+import ovh.asetniew.ba.fitting.PowerDistributionFitter;
 import ovh.asetniew.ba.nodes.Node;
 import ovh.asetniew.misc.Timer;
 
@@ -36,16 +35,18 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
     protected double[] probability;
 
     protected Timer timer;
-    protected ScatterChart<Number, Number> scatterPlot;
-    protected ScatterChart<Number, Number> scatterPlot2;
-    protected XYChart.Series<Number, Number> series = new XYChart.Series<>();
-    protected XYChart.Series<Number, Number> series2 = new XYChart.Series<>();
+    protected ScatterChart<Number, Number> loglogPlot;
+    protected ScatterChart<Number, Number> semilogPlot;
+    protected XYChart.Series<Number, Number> semilogData = new XYChart.Series<>();
+    protected XYChart.Series<Number, Number> loglogData = new XYChart.Series<>();
+    protected XYChart.Series<Number, Number> semilogDataFitted = new XYChart.Series<>();
+    protected XYChart.Series<Number, Number> loglogDataFitted = new XYChart.Series<>();
 
-    public BASimulationUsingLists(int m_0, int m, int maxSteps, ScatterChart<Number, Number> scatterPlot,ScatterChart<Number, Number> scatterPlot2) throws Exception {
+    public BASimulationUsingLists(int m_0, int m, int maxSteps, ScatterChart<Number, Number> loglogPlot, ScatterChart<Number, Number> semilogPlot) throws Exception {
 
 
-        this.scatterPlot = scatterPlot;
-        this.scatterPlot2 = scatterPlot2;
+        this.loglogPlot = loglogPlot;
+        this.semilogPlot = semilogPlot;
         this.nodes = new ArrayList<>();
         this.timer = new Timer();
         this.m = m;
@@ -84,6 +85,43 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
         }
     }
 
+    protected void getTheoreticalLine(Map<Integer, Integer> map) {
+        PowerDistributionFitter fitter = new PowerDistributionFitter();
+        ArrayList<WeightedObservedPoint> points = new ArrayList<>();
+
+        int maxX=0;
+        for (int key : map.keySet()) {
+            WeightedObservedPoint point = new WeightedObservedPoint(1.0,
+                    key,
+                    map.get(key));
+
+            maxX = Math.max(key, maxX);
+            points.add(point);
+        }
+
+        final double coeffs[] = fitter.fit(points);
+        System.out.println(Arrays.toString(coeffs));
+
+        loglogDataFitted = new XYChart.Series();
+        semilogDataFitted = new XYChart.Series();
+
+        //sc.lookup(".default-color0.chart-series-line");
+        loglogDataFitted.setName("Fit");
+        semilogDataFitted.setName("Fit");
+
+        for (double x = 1.0; x < maxX; x+=0.1) {
+            loglogDataFitted.getData().add(new XYChart.Data<>(x, coeffs[0]*Math.pow(x, coeffs[1])));
+            semilogDataFitted.getData().add(new XYChart.Data<>(x, coeffs[0]*Math.pow(x, coeffs[1])));
+        }
+
+        Platform.runLater(()->{
+            // Add series to charts
+            loglogPlot.getData().add(loglogDataFitted);
+            semilogPlot.getData().add(semilogDataFitted);
+        });
+    }
+
+
     public Map<Integer, Integer> getDegreeDistribution() {
         Map<Integer, Integer> map = new HashMap<>();
 
@@ -98,6 +136,10 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
 
 
         }
+
+        //
+        getTheoreticalLine(map);
+        //
 
 
         try {
@@ -124,9 +166,11 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
         }
 
         Platform.runLater(() -> {
-            XYChart.Series series2 = new XYChart.Series();
-            series2.setName("BA N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
-            series.setName("BA N = " + maxSteps + " m = " + m + " m_0 =" + m_0 );
+            loglogData = new XYChart.Series();
+
+            //sc.lookup(".default-color0.chart-series-line");
+            loglogData.setName("BA N = " + maxSteps + " m = " + m + " m_0 =" + m_0);
+            semilogData.setName("BA N = " + maxSteps + " m = " + m + " m_0 =" + m_0);
 
 
             int i = 1;
@@ -135,31 +179,31 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
             double maxY = -1;
             double minY = 10000000;
             for (int key : distribution.keySet()) {
-                series2.getData().add(new XYChart.Data<>(key,distribution.get(key)));
-                series.getData().add(new XYChart.Data<>(key,distribution.get(key)));
+                loglogData.getData().add(new XYChart.Data<>(key, distribution.get(key)));
+                semilogData.getData().add(new XYChart.Data<>(key, distribution.get(key)));
                 maxX = Double.max(key, maxX);
                 minX = Double.min(key, minX);
                 maxY = Double.max(distribution.get(key), maxY);
                 minY = Double.min(distribution.get(key), minY);
             }
-            // Add a new number to the linechart
-            scatterPlot.getData().add(series2);
-            System.out.println(scatterPlot2 == null);
+            // Add series to charts
+            loglogPlot.getData().add(loglogData);
+            semilogPlot.getData().add(semilogData);
 
-            scatterPlot2.getData().add(series);
+            // since their nodes are not null anymore, let's set the style to scatter
 
-            ValueAxis axisX = (ValueAxis) scatterPlot.getXAxis();
-            ValueAxis axisY = (ValueAxis) scatterPlot.getYAxis();
+            ValueAxis axisX = (ValueAxis) loglogPlot.getXAxis();
+            ValueAxis axisY = (ValueAxis) loglogPlot.getYAxis();
 
-            axisX.setUpperBound(Math.pow(10,getPower(maxX)-1));
+            axisX.setUpperBound(Math.pow(10, getPower(maxX) - 1));
             //axisY.setLowerBound(0.0001);
-            axisY.setUpperBound(Math.pow(10,getPower(maxY)-1));
-            axisX = (ValueAxis) scatterPlot2.getXAxis();
-            axisY = (ValueAxis) scatterPlot2.getYAxis();
+            axisY.setUpperBound(Math.pow(10, getPower(maxY) - 1));
+            axisX = (ValueAxis) semilogPlot.getXAxis();
+            axisY = (ValueAxis) semilogPlot.getYAxis();
 
-            axisX.setUpperBound(Math.pow(10,getPower(maxX)-1));
+            axisX.setUpperBound(Math.pow(10, getPower(maxX) - 1));
             //axisY.setLowerBound(0.0001);
-            axisY.setUpperBound(Math.pow(10,getPower(maxY)-1));
+            axisY.setUpperBound(Math.pow(10, getPower(maxY) - 1));
 
         });
 
@@ -167,10 +211,10 @@ public class BASimulationUsingLists extends Task<Integer> implements BASimulatio
         return 1;
     }
 
-    public static int getPower(double x){
+    public static int getPower(double x) {
         double ret = x;
         int power = 1;
-        while(ret > 1 ){
+        while (ret > 1) {
             ret /= 10;
             power++;
         }
